@@ -315,9 +315,17 @@ public class UpgraderScreen extends AbstractContainerScreen<UpgraderMenu> {
      */
     public void changeMultiplier(int delta) {
         try {
-            int next = Mth.clamp(this.menu.getMultiplier() + delta,
-                    UpgraderConstants.MIN_MULTIPLIER, UpgraderConstants.MAX_MULTIPLIER);
-            NetworkHandler.sendToServer(new SetMultiplierPacket(next));
+            int current = this.menu.getMultiplier();
+            int index = 0;
+            for (int i = 0; i < UpgraderConstants.BET_MULTIPLIERS.length; i++) {
+                if (UpgraderConstants.BET_MULTIPLIERS[i] == current) {
+                    index = i;
+                    break;
+                }
+            }
+            int nextIndex = Mth.clamp(index + Integer.signum(delta), 0,
+                    UpgraderConstants.BET_MULTIPLIERS.length - 1);
+            NetworkHandler.sendToServer(new SetMultiplierPacket(UpgraderConstants.BET_MULTIPLIERS[nextIndex]));
         } catch (Throwable throwable) {
             LOGGER.error("Upgrader could not change the multiplier", throwable);
         }
@@ -350,26 +358,28 @@ public class UpgraderScreen extends AbstractContainerScreen<UpgraderMenu> {
             double radians = Math.toRadians(tick * (360.0D / COMPASS_TICKS));
             if (tick % (COMPASS_TICKS / COMPASS_MAJOR_TICKS) == 0) {
                 drawRadialLine(guiGraphics, centreX, centreY, radians,
-                        COMPASS_RADIUS - 13, COMPASS_RADIUS - 1, COLOR_GOLD);
+                        COMPASS_RADIUS - 13, COMPASS_RADIUS - 1, COLOR_ACCENT);
             } else {
                 drawRadialLine(guiGraphics, centreX, centreY, radians,
-                        COMPASS_RADIUS - 7, COMPASS_RADIUS - 2, COLOR_ACCENT);
+                        COMPASS_RADIUS - 7, COMPASS_RADIUS - 2, COLOR_BORDER);
             }
         }
 
-        // Needle.
+        // Triangular needle.
         float angle = this.currentAngle();
         double needle = Math.toRadians(angle - 90.0D);
-        double tail = Math.toRadians(angle + 90.0D);
+        double perpendicular = needle + Math.PI / 2.0D;
         int needleColour = this.lastSuccess == null ? COLOR_TEXT
                 : (this.lastSuccess ? COLOR_SUCCESS : COLOR_FAILURE);
-
-        drawLine(guiGraphics,
-                centreX + (int) Math.round(Math.cos(tail) * 12.0D),
-                centreY + (int) Math.round(Math.sin(tail) * 12.0D),
-                centreX + (int) Math.round(Math.cos(needle) * (COMPASS_RADIUS - 16.0D)),
-                centreY + (int) Math.round(Math.sin(needle) * (COMPASS_RADIUS - 16.0D)),
-                needleColour);
+        int tipX = centreX + (int) Math.round(Math.cos(needle) * (COMPASS_RADIUS - 16.0D));
+        int tipY = centreY + (int) Math.round(Math.sin(needle) * (COMPASS_RADIUS - 16.0D));
+        int baseCentreX = centreX - (int) Math.round(Math.cos(needle) * 12.0D);
+        int baseCentreY = centreY - (int) Math.round(Math.sin(needle) * 12.0D);
+        int baseLeftX = baseCentreX + (int) Math.round(Math.cos(perpendicular) * 5.0D);
+        int baseLeftY = baseCentreY + (int) Math.round(Math.sin(perpendicular) * 5.0D);
+        int baseRightX = baseCentreX - (int) Math.round(Math.cos(perpendicular) * 5.0D);
+        int baseRightY = baseCentreY - (int) Math.round(Math.sin(perpendicular) * 5.0D);
+        drawTriangle(guiGraphics, tipX, tipY, baseLeftX, baseLeftY, baseRightX, baseRightY, needleColour);
 
         guiGraphics.fill(centreX - 2, centreY - 2, centreX + 3, centreY + 3, COLOR_GOLD);
 
@@ -450,6 +460,30 @@ public class UpgraderScreen extends AbstractContainerScreen<UpgraderMenu> {
         int endX = centreX + (int) Math.round(Math.cos(radians) * outerRadius);
         int endY = centreY + (int) Math.round(Math.sin(radians) * outerRadius);
         drawLine(guiGraphics, startX, startY, endX, endY, colour);
+    }
+
+    private static void drawTriangle(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2,
+                                     int x3, int y3, int colour) {
+        int minimumY = Math.min(y1, Math.min(y2, y3));
+        int maximumY = Math.max(y1, Math.max(y2, y3));
+        for (int y = minimumY; y <= maximumY; y++) {
+            int left = Integer.MAX_VALUE;
+            int right = Integer.MIN_VALUE;
+            int[] x = {x1, x2, x3};
+            int[] pointY = {y1, y2, y3};
+            for (int edge = 0; edge < 3; edge++) {
+                int next = (edge + 1) % 3;
+                if ((pointY[edge] <= y && y < pointY[next]) || (pointY[next] <= y && y < pointY[edge])) {
+                    int interpolated = x[edge] + (int) ((long) (y - pointY[edge]) * (x[next] - x[edge])
+                            / (pointY[next] - pointY[edge]));
+                    left = Math.min(left, interpolated);
+                    right = Math.max(right, interpolated);
+                }
+            }
+            if (left <= right) {
+                guiGraphics.fill(left, y, right + 1, y + 1, colour);
+            }
+        }
     }
 
     private static void drawLine(GuiGraphics guiGraphics, int x0, int y0, int x1, int y1, int colour) {

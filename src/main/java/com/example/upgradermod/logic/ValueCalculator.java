@@ -4,6 +4,7 @@ import com.example.upgradermod.UpgraderConstants;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
 /**
@@ -52,6 +53,17 @@ public final class ValueCalculator {
             LOGGER.error("Upgrader value calculation failed for {}, using the fallback price", describe(stack), throwable);
             return UpgraderConstants.FALLBACK_PRICE;
         }
+    }
+
+    /**
+     * Prices a stack in a particular world.
+     *
+     * @param stack stack to price
+     * @param level world supplying recipe data, may be {@code null}
+     * @return the first positive provider result, or the fallback price
+     */
+    public static long calculate(ItemStack stack, Level level) {
+        return calculate(stack, ValueContext.root(level));
     }
 
     /**

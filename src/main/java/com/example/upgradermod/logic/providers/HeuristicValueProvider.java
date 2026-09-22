@@ -1,9 +1,13 @@
 package com.example.upgradermod.logic.providers;
 
+import com.example.upgradermod.config.UpgraderConfig;
 import com.example.upgradermod.logic.ValueContext;
 import com.example.upgradermod.logic.ValueProvider;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 /**
  * Priority 100 &ndash; the last resort heuristics.
@@ -69,10 +73,57 @@ public class HeuristicValueProvider implements ValueProvider {
             }
 
             value += rarityBonus(stack.getRarity());
+            value += enchantmentBonus(stack);
+            value += attributeBonus(stack);
             return value;
         } catch (Throwable throwable) {
             return UNKNOWN;
         }
+    }
+
+    /**
+     * Calculates the configured enchantment contribution.
+     *
+     * @param stack item stack
+     * @return weighted enchantment value
+     */
+    private long enchantmentBonus(ItemStack stack) {
+        long bonus = 0L;
+        for (java.util.Map.Entry<Enchantment, Integer> entry : EnchantmentHelper.getEnchantments(stack).entrySet()) {
+            int weight;
+            switch (entry.getKey().getRarity()) {
+                case COMMON:
+                case UNCOMMON:
+                    weight = UpgraderConfig.enchantWeightCommon();
+                    break;
+                case RARE:
+                    weight = UpgraderConfig.enchantWeightRare();
+                    break;
+                case VERY_RARE:
+                    weight = UpgraderConfig.enchantWeightLegendary();
+                    break;
+                default:
+                    weight = UpgraderConfig.enchantWeightCommon();
+                    break;
+            }
+            bonus = Math.min(Long.MAX_VALUE - weight,
+                    bonus + (long) Math.max(1, entry.getValue()) * weight);
+        }
+        return bonus;
+    }
+
+    /**
+     * Calculates the configured attribute contribution across all equipment slots.
+     *
+     * @param stack item stack
+     * @return weighted attribute value
+     */
+    private long attributeBonus(ItemStack stack) {
+        long modifierCount = 0L;
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            modifierCount += stack.getAttributeModifiers(slot).size();
+        }
+        return Math.min(Long.MAX_VALUE, modifierCount * (long) UpgraderConfig.attributeWeight());
     }
 
     /**

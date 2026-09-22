@@ -16,6 +16,8 @@ import net.minecraftforge.event.TagsUpdatedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
@@ -44,8 +46,10 @@ public class UpgraderMod {
 
         ModItems.ITEMS.register(modBus);
         ModMenus.MENUS.register(modBus);
+        context.registerConfig(ModConfig.Type.COMMON, UpgraderConfig.SPEC);
 
         modBus.addListener(this::commonSetup);
+        modBus.addListener(this::onConfigReload);
         modBus.addListener(this::onBuildCreativeModeTabContents);
 
         MinecraftForge.EVENT_BUS.register(this);
@@ -74,6 +78,18 @@ public class UpgraderMod {
                 LOGGER.error("Upgrader initialisation failed, value engine may be incomplete", throwable);
             }
         });
+    }
+
+    /** Refreshes value tables when Forge reloads the common configuration. */
+    private void onConfigReload(ModConfigEvent.Reloading event) {
+        try {
+            if (event.getConfig().getSpec() == UpgraderConfig.SPEC) {
+                UpgraderConfig.reload();
+                ValueCalculator.clearCache();
+            }
+        } catch (Throwable throwable) {
+            LOGGER.error("Upgrader failed to apply a config reload", throwable);
+        }
     }
 
     /** Adds the Upgrader item to the vanilla tools &amp; utilities creative tab. */

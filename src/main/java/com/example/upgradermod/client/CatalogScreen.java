@@ -1,6 +1,8 @@
 package com.example.upgradermod.client;
 
+import com.example.upgradermod.logic.ChanceCalculator;
 import com.example.upgradermod.logic.ItemRegistryCache;
+import com.example.upgradermod.logic.ValueCalculator;
 import com.example.upgradermod.menu.UpgraderMenu;
 import com.example.upgradermod.network.NetworkHandler;
 import com.example.upgradermod.network.SetTargetPacket;
@@ -32,10 +34,10 @@ public class CatalogScreen extends Screen {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     /** Columns of the visible grid. */
-    public static final int GRID_COLUMNS = 9;
+    public static final int GRID_COLUMNS = 8;
 
     /** Rows of the visible grid. */
-    public static final int GRID_ROWS = 5;
+    public static final int GRID_ROWS = 6;
 
     /** Cell size in pixels. */
     public static final int CELL_SIZE = 20;
@@ -138,7 +140,21 @@ public class CatalogScreen extends Screen {
                 this.width / 2, gridTop + gridHeight + 40, UpgraderScreen.COLOR_BORDER);
 
         if (hoveredStack != null) {
-            guiGraphics.renderTooltip(this.font, hoveredStack, mouseX, mouseY);
+            List<Component> tooltip = new ArrayList<>();
+            if (this.minecraft != null) {
+                tooltip.addAll(Screen.getTooltipFromItem(this.minecraft, hoveredStack));
+            }
+            long value = ValueCalculator.calculate(hoveredStack);
+            tooltip.add(Component.translatable("upgradermod.catalog.tooltip.value",
+                    UpgraderScreen.formatValue(value)));
+
+            UpgraderMenu menu = this.parent instanceof UpgraderScreen screen ? screen.getMenu() : null;
+            if (menu != null) {
+                double chance = ChanceCalculator.chance(menu.getInputValue(), value, menu.getMultiplier());
+                tooltip.add(Component.translatable("upgradermod.catalog.tooltip.chance",
+                        ChanceCalculator.format(chance)));
+            }
+            guiGraphics.renderComponentTooltip(this.font, tooltip, mouseX, mouseY);
         }
     }
 

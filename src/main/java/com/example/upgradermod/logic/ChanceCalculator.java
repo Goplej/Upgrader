@@ -1,6 +1,7 @@
 package com.example.upgradermod.logic;
 
 import com.example.upgradermod.UpgraderConstants;
+import com.example.upgradermod.config.UpgraderConfig;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
@@ -27,23 +28,25 @@ public final class ChanceCalculator {
      * @return the chance in percent, inside {@code [1e-21, 90.0]}
      */
     public static double chance(long inputValue, long targetValue, int multiplier) {
+        double minimumChance = UpgraderConfig.minChance();
+        double maximumChance = UpgraderConfig.maxChance();
         if (inputValue <= 0L || targetValue <= 0L) {
-            return UpgraderConstants.MIN_CHANCE;
+            return minimumChance;
         }
 
-        int bet = Math.max(1, multiplier);
+        int bet = UpgraderConstants.normalizeMultiplier(multiplier);
         double denominator = (double) targetValue * (double) bet;
         if (!(denominator > 0.0D) || !Double.isFinite(denominator)) {
-            return UpgraderConstants.MIN_CHANCE;
+            return minimumChance;
         }
 
         double ratio = (double) inputValue / denominator;
         if (!Double.isFinite(ratio)) {
             // Absurd input value: cap at the maximum allowed chance instead of producing NaN.
-            return UpgraderConstants.MAX_CHANCE;
+            return maximumChance;
         }
 
-        return Mth.clamp(ratio * 100.0D, UpgraderConstants.MIN_CHANCE, UpgraderConstants.MAX_CHANCE);
+        return Mth.clamp(ratio * 100.0D, minimumChance, maximumChance);
     }
 
     /**
@@ -57,7 +60,7 @@ public final class ChanceCalculator {
         if (random == null) {
             return false;
         }
-        double clamped = Mth.clamp(chance, UpgraderConstants.MIN_CHANCE, UpgraderConstants.MAX_CHANCE);
+        double clamped = Mth.clamp(chance, UpgraderConfig.minChance(), UpgraderConfig.maxChance());
         return random.nextDouble() < (clamped / 100.0D);
     }
 

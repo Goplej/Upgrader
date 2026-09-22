@@ -1,6 +1,7 @@
 package com.example.upgradermod.logic.providers;
 
 import com.example.upgradermod.UpgraderConstants;
+import com.example.upgradermod.config.UpgraderConfig;
 import com.example.upgradermod.logic.ItemRegistryCache;
 import com.example.upgradermod.logic.ValueCalculator;
 import com.example.upgradermod.logic.ValueContext;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
@@ -55,13 +57,15 @@ public class RecipeValueProvider implements ValueProvider {
     public long getValue(ItemStack stack, ValueContext context) {
         try {
             if (stack == null || stack.isEmpty()) {
-            return UNKNOWN;
-        }
-        if (context.getDepth() >= UpgraderConstants.MAX_RECIPE_DEPTH) {
-            return UNKNOWN;
-        }
+                return UNKNOWN;
+            }
+            int maxDepth = UpgraderConfig.recipeMaxDepth();
+            if (context.getDepth() >= maxDepth) {
+                return UNKNOWN;
+            }
 
-        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            Level level = context.getLevel();
+            MinecraftServer server = level == null ? ServerLifecycleHooks.getCurrentServer() : level.getServer();
         if (server == null) {
             // No world loaded (main menu, early startup) - recipes are unknown right now.
             return UNKNOWN;
@@ -82,7 +86,8 @@ public class RecipeValueProvider implements ValueProvider {
 
         Item target = stack.getItem();
         ValueContext ingredientContext = context.descend(target);
-        double multiplier = UpgraderConstants.depthMultiplier(context.getDepth());
+        double multiplier = UpgraderConstants.depthMultiplier(Math.min(context.getDepth(), maxDepth));
+        long recipeMaxPrice = UpgraderConfig.recipeMaxPrice();
 
         long best = UNKNOWN;
         for (Recipe<?> recipe : recipeManager.getRecipes()) {
@@ -109,7 +114,10 @@ public class RecipeValueProvider implements ValueProvider {
                         complete = false;
                         break;
                     }
-                    sum += price;
+                    sum = safeAdd(sum, price, recipeMaxPrice);
+                    if (sum >= recipeMaxPrice) {
+                        break;
+                    }
                 }
 
                 if (!complete || sum <= 0L) {
@@ -119,7 +127,7 @@ public class RecipeValueProvider implements ValueProvider {
                 long scaled = (long) Math.ceil((double) sum * multiplier);
                 int outputs = Math.max(1, output.getCount());
                 scaled = Math.max(1L, scaled / outputs);
-                scaled = Math.min(scaled, UpgraderConstants.MAX_PRICE);
+                scaled = Math.min(scaled, recipeMaxPrice);
 
                 if (best < 0L || scaled < best) {
                     best = scaled;
@@ -175,18 +183,38 @@ public class RecipeValueProvider implements ValueProvider {
                 ItemStack unit = candidate.copy();
                 unit.setCount(1);
                 unitPrice = ValueCalculator.calculate(unit, context);
+                if (unitPrice > 0L) {
+                    ItemRegistryCache.putCachedValue(candidate.getItem(), unitPrice);
+                }
             }
 
             if (unitPrice <= 0L) {
                 continue;
             }
 
-            long total = Math.min(unitPrice * quantity, UpgraderConstants.MAX_PRICE);
+            long total = safeMultiply(unitPrice, quantity, UpgraderConfig.recipeMaxPrice());
             if (best < 0L || total < best) {
                 best = total;
             }
         }
 
         return best;
+    }
+
+    private static long safeAdd(long left, long right, long ceiling) {
+        if (left >= ceiling || right >= ceiling - left) {
+            return ceiling;
+        }
+        return left + right;
+    }
+
+    private static long safeMultiply(long value, int quantity, long ceiling) {
+        if (value <= 0L || quantity <= 0) {
+            return 0L;
+        }
+        if (value > ceiling / quantity) {
+            return ceiling;
+        }
+        return value * quantity;
     }
 }

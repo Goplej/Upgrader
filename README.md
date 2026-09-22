@@ -19,7 +19,7 @@ value pipeline and lets you risk it against a richer target item on a spinning c
 1. Craft/receive the **Upgrader** (it appears in the *Tools & Utilities* creative tab) and right
    click to open its screen.
 2. Drop the item you want to consume into the **INPUT** slot.
-3. Press **Pick target...** (or `V`) to open the searchable catalogue and choose the item you want
+3. Press **Pick target** (or `V`) to open the searchable catalogue and choose the item you want
    to win. You can also drop an item into the **TARGET** slot directly.
 4. Set the **BET** multiplier with `-` / `+`. The multiplier divides the target value in the chance
    formula (a bigger bet is a harder spin) and, on a win, consumes and rewards that many items.

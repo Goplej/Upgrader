@@ -54,8 +54,30 @@ public final class UpgraderConstants {
     /** Smallest accepted bet multiplier. */
     public static final int MIN_MULTIPLIER = 1;
 
-    /** Largest accepted bet multiplier. */
-    public static final int MAX_MULTIPLIER = 64;
+    /** Largest accepted bet multiplier. Supported bets are x1, x2, x4, and x8. */
+    public static final int MAX_MULTIPLIER = 8;
+
+    /** Server-approved bet values. */
+    public static final int[] BET_MULTIPLIERS = {1, 2, 4, 8};
+
+    /**
+     * Normalises an untrusted multiplier request to the nearest supported bet.
+     *
+     * @param requested client supplied multiplier
+     * @return one of {@link #BET_MULTIPLIERS}
+     */
+    public static int normalizeMultiplier(int requested) {
+        int best = BET_MULTIPLIERS[0];
+        long bestDistance = Math.abs((long) requested - best);
+        for (int multiplier : BET_MULTIPLIERS) {
+            long distance = Math.abs((long) requested - multiplier);
+            if (distance < bestDistance) {
+                best = multiplier;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
 
     /** Folder below {@code config/} that holds the JSON tables. */
     public static final String CONFIG_FOLDER = "upgradermod";

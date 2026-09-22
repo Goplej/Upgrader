@@ -1,6 +1,7 @@
 package com.example.upgradermod.logic;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 /**
  * A single step of the value calculation pipeline (Section 1.1).
@@ -39,4 +40,19 @@ public interface ValueProvider {
      * @return a value greater than zero, or {@link #UNKNOWN} when this provider declines
      */
     long getValue(ItemStack stack, ValueContext context);
+
+    /**
+     * Public level-aware provider API required by the architecture specification.
+     *
+     * @param stack item stack to price
+     * @param level world supplying recipe data, may be {@code null}
+     * @return provider value or {@link #UNKNOWN}
+     */
+    default long getValue(ItemStack stack, Level level) {
+        try {
+            return getValue(stack, ValueContext.root(level));
+        } catch (Throwable throwable) {
+            return UNKNOWN;
+        }
+    }
 }

@@ -1,7 +1,9 @@
 package com.example.upgradermod.menu;
 
 import com.example.upgradermod.UpgraderConstants;
+import com.example.upgradermod.config.UpgraderConfig;
 import com.example.upgradermod.logic.ChanceCalculator;
+import com.example.upgradermod.logic.ItemRegistryCache;
 import com.example.upgradermod.logic.SpinValidator;
 import com.example.upgradermod.logic.ValueCalculator;
 import com.example.upgradermod.network.NetworkHandler;
@@ -9,6 +11,7 @@ import com.example.upgradermod.network.SpinResultPacket;
 import com.example.upgradermod.registry.ModMenus;
 import com.mojang.logging.LogUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -20,6 +23,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import org.slf4j.Logger;
@@ -286,15 +290,21 @@ public class UpgraderMenu extends AbstractContainerMenu {
             success = ChanceCalculator.roll(chance, random);
             rollAngle = (float) (random.nextDouble() * 360.0D);
 
-            int bet = Math.min(multiplier, input.getCount());
-            if (success && bet > 0) {
-                input.shrink(bet);
-                this.inputContainer.setChanged();
+            if (success) {
+                if (!this.chargeTax(player)) {
+                    success = false;
+                    player.displayClientMessage(Component.translatable("upgradermod.spin.cancel.tax"), true);
+                } else {
+                    // Transaction order is intentional: tax, then consume the input, then grant the
+                    // reward. The input slot is cleared before any reward reaches the inventory.
+                    this.inputContainer.setItem(SLOT_INPUT, ItemStack.EMPTY);
+                    this.inputContainer.setChanged();
 
-                ItemStack reward = target.copy();
-                reward.setCount(bet);
-                if (!player.getInventory().add(reward)) {
-                    player.drop(reward, false);
+                    ItemStack reward = target.copy();
+                    reward.setCount(multiplier);
+                    if (!player.getInventory().add(reward)) {
+                        player.drop(reward, false);
+                    }
                 }
             }
 
@@ -328,8 +338,7 @@ public class UpgraderMenu extends AbstractContainerMenu {
      * @param multiplier requested multiplier, clamped to the supported range
      */
     public void setMultiplier(int multiplier) {
-        this.data.set(DATA_MULTIPLIER,
-                Mth.clamp(multiplier, UpgraderConstants.MIN_MULTIPLIER, UpgraderConstants.MAX_MULTIPLIER));
+        this.data.set(DATA_MULTIPLIER, UpgraderConstants.normalizeMultiplier(multiplier));
     }
 
     /**
@@ -350,7 +359,7 @@ public class UpgraderMenu extends AbstractContainerMenu {
 
     /** @return the bet multiplier, always at least {@code 1} */
     public int getMultiplier() {
-        return Math.max(UpgraderConstants.MIN_MULTIPLIER, this.data.get(DATA_MULTIPLIER));
+        return UpgraderConstants.normalizeMultiplier(this.data.get(DATA_MULTIPLIER));
     }
 
     /** @return the current chance in percent */
@@ -389,6 +398,58 @@ public class UpgraderMenu extends AbstractContainerMenu {
     }
 
     /**
+     * Charges the configured tax from the player's complete inventory.
+     *
+     * @param player player paying the tax
+     * @return {@code true} when the tax was disabled or fully removed
+     */
+    private boolean chargeTax(ServerPlayer player) {
+        try {
+            if (!UpgraderConfig.taxEnabled() || UpgraderConfig.taxAmount() <= 0) {
+                return true;
+            }
+
+            ResourceLocation taxId = ResourceLocation.tryParse(UpgraderConfig.taxItemId());
+            Item taxItem = ItemRegistryCache.byId(taxId);
+            int amount = UpgraderConfig.taxAmount();
+            if (taxItem == null || amount <= 0) {
+                LOGGER.warn("Upgrader tax item '{}' is not registered; successful spin cancelled", taxId);
+                return false;
+            }
+
+            int available = 0;
+            Inventory inventory = player.getInventory();
+            for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+                ItemStack stack = inventory.getItem(slot);
+                if (!stack.isEmpty() && stack.is(taxItem)) {
+                    available += stack.getCount();
+                    if (available >= amount) {
+                        break;
+                    }
+                }
+            }
+            if (available < amount) {
+                return false;
+            }
+
+            int remaining = amount;
+            for (int slot = 0; slot < inventory.getContainerSize() && remaining > 0; slot++) {
+                ItemStack stack = inventory.getItem(slot);
+                if (!stack.isEmpty() && stack.is(taxItem)) {
+                    int removed = Math.min(remaining, stack.getCount());
+                    inventory.removeItem(slot, removed);
+                    remaining -= removed;
+                }
+            }
+            inventory.setChanged();
+            return remaining == 0;
+        } catch (Throwable throwable) {
+            LOGGER.error("Upgrader tax transaction failed; the spin is cancelled", throwable);
+            return false;
+        }
+    }
+
+    /**
      * Recomputes input value, target value and chance when one of them can have changed.
      */
     private void refreshValues() {
@@ -408,8 +469,8 @@ public class UpgraderMenu extends AbstractContainerMenu {
         this.lastMultiplier = multiplier;
         this.valuesValid = true;
 
-        this.inputValue = input.isEmpty() ? 0L : ValueCalculator.calculate(input);
-        this.targetValue = target.isEmpty() ? 0L : ValueCalculator.calculate(target);
+        this.inputValue = input.isEmpty() ? 0L : ValueCalculator.calculate(input, this.owner.level());
+        this.targetValue = target.isEmpty() ? 0L : ValueCalculator.calculate(target, this.owner.level());
 
         double chance = ChanceCalculator.chance(this.inputValue, this.targetValue, multiplier);
 

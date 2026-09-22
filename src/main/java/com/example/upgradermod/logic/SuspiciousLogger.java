@@ -1,6 +1,6 @@
 package com.example.upgradermod.logic;
 
-import com.example.upgradermod.UpgraderConstants;
+import com.example.upgradermod.config.UpgraderConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -40,21 +40,23 @@ public final class SuspiciousLogger {
      */
     public static void log(@Nullable Player player, ItemStack input, ItemStack target, long inputValue, long targetValue) {
         String playerName = "<unknown>";
+        String playerUuid = "<unknown>";
         try {
             if (player != null) {
                 playerName = player.getGameProfile().getName();
+                playerUuid = player.getUUID().toString();
             }
         } catch (Throwable throwable) {
-            LOGGER.debug("Upgrader could not resolve the player name for the suspicious log", throwable);
+            LOGGER.debug("Upgrader could not resolve player identity for the suspicious log", throwable);
         }
 
         String line = String.format(Locale.ROOT,
-                "%s | player=%s | input=%s x%d | target=%s x%d | inputValue=%d | targetValue=%d | threshold=%d%n",
+                "%s | player=%s | uuid=%s | input=%s x%d | target=%s x%d | inputValue=%d | targetValue=%d | threshold=%d%n",
                 DateTimeFormatter.ISO_INSTANT.format(Instant.now()),
-                playerName,
+                playerName, playerUuid,
                 describe(input), input == null ? 0 : input.getCount(),
                 describe(target), target == null ? 0 : target.getCount(),
-                inputValue, targetValue, UpgraderConstants.LOG_THRESHOLD);
+                inputValue, targetValue, UpgraderConfig.logThreshold());
 
         try {
             Path file = FMLPaths.GAMEDIR.get().resolve(UpgraderConstants.SUSPICIOUS_LOG_FILE);

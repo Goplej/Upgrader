@@ -1,6 +1,6 @@
 package com.example.upgradermod.logic;
 
-import com.example.upgradermod.UpgraderConstants;
+import com.example.upgradermod.config.UpgraderConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -89,20 +89,21 @@ public final class SpinValidator {
             }
 
             // C4 - creative players may not farm expensive targets.
-            if (player != null && player.isCreative() && targetValue >= CREATIVE_TARGET_LIMIT) {
+            if (player != null && player.isCreative() && !UpgraderConfig.allowCreativeEndgame()
+                    && targetValue >= CREATIVE_TARGET_LIMIT) {
                 return Validation.cancel(4, "upgradermod.spin.cancel.creative");
             }
 
             // C6 is audited before C5 so an input above the suspicious threshold is always written
             // to disk, even when it also trips the value-ratio guard.
-            boolean suspicious = inputValue > UpgraderConstants.LOG_THRESHOLD;
+            boolean suspicious = inputValue > UpgraderConfig.logThreshold();
             if (suspicious) {
                 SuspiciousLogger.log(player, input, target, inputValue, targetValue);
             }
 
             // C5 - the input must not be worth more than 100x the target. Compared in double to stay
             // overflow safe for the full value range.
-            if ((double) inputValue > (double) targetValue * (double) MAX_VALUE_RATIO) {
+            if ((double) inputValue > (double) targetValue * (double) UpgraderConfig.maxDowngradeRatio()) {
                 return Validation.cancel(5, "upgradermod.spin.cancel.ratio");
             }
 

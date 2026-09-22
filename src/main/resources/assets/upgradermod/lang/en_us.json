@@ -13,11 +13,11 @@
   "upgradermod.gui.ratio": "%s -> %s",
   "upgradermod.gui.hint.key": "R = spin   V = catalogue",
   "upgradermod.gui.spin": "SPIN",
-  "upgradermod.gui.catalog": "Pick target...",
+  "upgradermod.gui.catalog": "Pick target",
   "upgradermod.gui.search": "Search",
 
   "upgradermod.gui.status.ready": "Ready",
-  "upgradermod.gui.status.spinning": "Spinning...",
+  "upgradermod.gui.status.spinning": "Spinning",
   "upgradermod.gui.status.success": "UPGRADE!",
   "upgradermod.gui.status.failure": "Lost",
   "upgradermod.gui.status.blocked": "Blocked (C%s)",
@@ -28,6 +28,7 @@
   "upgradermod.spin.cancel.creative": "Creative players cannot upgrade to items that valuable.",
   "upgradermod.spin.cancel.ratio": "The input is worth too much compared to the target.",
   "upgradermod.spin.cancel.suspicious": "That input value looks suspicious. The spin was refused and logged.",
+  "upgradermod.spin.cancel.tax": "You do not have enough tax items for that upgrade.",
   "upgradermod.spin.cancel.error": "The upgrade could not be evaluated.",
 
   "upgradermod.catalog.title": "Upgrade target",
@@ -35,6 +36,8 @@
   "upgradermod.catalog.hint": "Click an item to select it. Mouse wheel scrolls.",
   "upgradermod.catalog.target.none": "No target selected yet",
   "upgradermod.catalog.target.current": "Current target: %s",
+  "upgradermod.catalog.tooltip.value": "Value: %s",
+  "upgradermod.catalog.tooltip.chance": "Chance: %s",
 
   "key.categories.upgradermod": "Upgrader",
   "key.upgradermod.spin": "Spin the Upgrader",
