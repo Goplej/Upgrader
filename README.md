@@ -81,7 +81,13 @@ Created on first launch in `config/upgradermod/`:
   comments).
 * **`tags.json`** — `{"namespace:tag/path": value}` tag values.
 
-Both files are re-read on datapack reload.
+Forge common settings are stored in `config/upgradermod-common.toml` and include `maxChance`,
+`minChance`, enchantment and attribute weights, `recipeMaxDepth`, `recipeMaxPrice`, taxation,
+`allowCreativeEndgame`, `logThreshold`, and `maxDowngradeRatio`. The supported bet values are
+`x1`, `x2`, `x4`, and `x8`. When taxation is enabled, the configured tax is removed before the
+input slot is cleared and the target reward is granted.
+
+Both JSON files are re-read on datapack/config reload.
 
 ## Building
 
