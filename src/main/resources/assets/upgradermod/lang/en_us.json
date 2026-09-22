@@ -1,0 +1,42 @@
+{
+  "item.upgradermod.upgrader": "Upgrader",
+  "item.upgradermod.upgrader.tooltip.usage": "Right click to gamble an item into a better one.",
+  "item.upgradermod.upgrader.tooltip.author": "by %s",
+
+  "container.upgradermod.upgrader": "Upgrader",
+
+  "upgradermod.gui.input": "INPUT",
+  "upgradermod.gui.target": "TARGET",
+  "upgradermod.gui.value": "value %s",
+  "upgradermod.gui.multiplier": "BET",
+  "upgradermod.gui.chance": "Chance: %s",
+  "upgradermod.gui.ratio": "%s -> %s",
+  "upgradermod.gui.hint.key": "R = spin   V = catalogue",
+  "upgradermod.gui.spin": "SPIN",
+  "upgradermod.gui.catalog": "Pick target...",
+  "upgradermod.gui.search": "Search",
+
+  "upgradermod.gui.status.ready": "Ready",
+  "upgradermod.gui.status.spinning": "Spinning...",
+  "upgradermod.gui.status.success": "UPGRADE!",
+  "upgradermod.gui.status.failure": "Lost",
+  "upgradermod.gui.status.blocked": "Blocked (C%s)",
+
+  "upgradermod.spin.cancel.empty": "Both the input and the target slot need an item.",
+  "upgradermod.spin.cancel.value": "One of the two items has no value.",
+  "upgradermod.spin.cancel.same": "The target must be a different item.",
+  "upgradermod.spin.cancel.creative": "Creative players cannot upgrade to items that valuable.",
+  "upgradermod.spin.cancel.ratio": "The input is worth too much compared to the target.",
+  "upgradermod.spin.cancel.suspicious": "That input value looks suspicious. The spin was refused and logged.",
+  "upgradermod.spin.cancel.error": "The upgrade could not be evaluated.",
+
+  "upgradermod.catalog.title": "Upgrade target",
+  "upgradermod.catalog.count": "%s items",
+  "upgradermod.catalog.hint": "Click an item to select it. Mouse wheel scrolls.",
+  "upgradermod.catalog.target.none": "No target selected yet",
+  "upgradermod.catalog.target.current": "Current target: %s",
+
+  "key.categories.upgradermod": "Upgrader",
+  "key.upgradermod.spin": "Spin the Upgrader",
+  "key.upgradermod.catalog": "Open the target catalogue"
+}
