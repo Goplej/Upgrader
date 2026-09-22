@@ -32,8 +32,15 @@ public class UpgraderMod {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public UpgraderMod() {
-        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+    /**
+     * Forge injects the mod's own loading context into this constructor (supported since the
+     * 1.20.1 backport in Forge 47.3, so it is available on the targeted 47.4.23). Using it avoids
+     * the {@code FMLJavaModLoadingContext.get()} static lookup, which is deprecated for removal.
+     *
+     * @param context loading context of this mod
+     */
+    public UpgraderMod(FMLJavaModLoadingContext context) {
+        IEventBus modBus = context.getModEventBus();
 
         ModItems.ITEMS.register(modBus);
         ModMenus.MENUS.register(modBus);

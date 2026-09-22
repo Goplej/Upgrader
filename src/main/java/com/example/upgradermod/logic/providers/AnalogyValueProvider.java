@@ -83,7 +83,7 @@ public class AnalogyValueProvider implements ValueProvider {
      * @return the vanilla item, or {@code null} when nothing matches
      */
     private Item findVanillaAnalogue(String path) {
-        Item exact = ItemRegistryCache.byId(new ResourceLocation(VANILLA_NAMESPACE, path));
+        Item exact = ItemRegistryCache.byId(ResourceLocation.fromNamespaceAndPath(VANILLA_NAMESPACE, path));
         if (exact != null) {
             return exact;
         }

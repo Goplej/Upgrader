@@ -32,7 +32,7 @@ public final class UpgraderConstants {
     public static final long LOG_THRESHOLD = 1_000_000_000L;
 
     /** Network channel name: {@code upgradermod:main}. */
-    public static final ResourceLocation CHANNEL = new ResourceLocation(MOD_ID, "main");
+    public static final ResourceLocation CHANNEL = ResourceLocation.fromNamespaceAndPath(MOD_ID, "main");
 
     /** Protocol version negotiated with the remote side. */
     public static final String PROTOCOL_VERSION = "1";

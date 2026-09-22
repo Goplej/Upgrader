@@ -1,5 +1,5 @@
 # This is the mod metadata file for the Upgrader mod.
-# The ${...} placeholders are expanded by the processResources task in build.gradle.
+# Every dollar-brace placeholder below is expanded by the processResources task in build.gradle.
 
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
