@@ -58,14 +58,14 @@ public class ProjectEValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
-            return UNKNOWN;
-        }
-        if (!bind()) {
-            return UNKNOWN;
-        }
-
         try {
+            if (stack == null || stack.isEmpty()) {
+                return UNKNOWN;
+            }
+            if (!bind()) {
+                return UNKNOWN;
+            }
+
             Object result = valueMethod.invoke(proxy, stack);
             if (result instanceof Number number) {
                 long emc = number.longValue();

@@ -38,10 +38,10 @@ import org.slf4j.Logger;
  *     <tr><th>Index</th><th>Meaning</th></tr>
  *     <tr><td>0</td><td>bet multiplier</td></tr>
  *     <tr><td>1</td><td>chance * 100</td></tr>
- *     <tr><td>2/3</td><td>input value, low/high 32 bit</td></tr>
- *     <tr><td>4/5</td><td>target value, low/high 32 bit</td></tr>
- *     <tr><td>6</td><td>last result: 0 none, 1 success, 2 failure</td></tr>
- *     <tr><td>7</td><td>last pre-spin check: 0 allowed, 1..6 = C1..C6</td></tr>
+ *     <tr><td>2-5</td><td>input value, four unsigned 16 bit chunks</td></tr>
+ *     <tr><td>6-9</td><td>target value, four unsigned 16 bit chunks</td></tr>
+ *     <tr><td>10</td><td>last result: 0 none, 1 success, 2 failure</td></tr>
+ *     <tr><td>11</td><td>last pre-spin check: 0 allowed, 1 through 6 = C1 through C6</td></tr>
  * </table>
  */
 public class UpgraderMenu extends AbstractContainerMenu {
@@ -61,7 +61,16 @@ public class UpgraderMenu extends AbstractContainerMenu {
     public static final int SLOT_PLAYER_END = SLOT_PLAYER_START + 36;
 
     /** Number of synced data slots. */
-    public static final int DATA_COUNT = 8;
+    public static final int DATA_COUNT = 12;
+
+    /**
+     * Number of 16 bit chunks a value is split into.
+     *
+     * <p>{@code ClientboundContainerSetDataPacket} transmits every container data entry with
+     * {@code writeShort}, so each slot can only carry 16 bits. A value is therefore stored as four
+     * chunks, which covers the whole {@code [0, MAX_PRICE]} range and more.</p>
+     */
+    public static final int VALUE_CHUNKS = 4;
 
     /** Data slot: bet multiplier. */
     public static final int DATA_MULTIPLIER = 0;
@@ -69,23 +78,17 @@ public class UpgraderMenu extends AbstractContainerMenu {
     /** Data slot: chance in hundredths of a percent. */
     public static final int DATA_CHANCE_X100 = 1;
 
-    /** Data slot: low 32 bit of the input value. */
-    public static final int DATA_INPUT_LOW = 2;
+    /** First data slot of the input value chunks (see {@link #VALUE_CHUNKS}). */
+    public static final int DATA_INPUT_START = 2;
 
-    /** Data slot: high 32 bit of the input value. */
-    public static final int DATA_INPUT_HIGH = 3;
-
-    /** Data slot: low 32 bit of the target value. */
-    public static final int DATA_TARGET_LOW = 4;
-
-    /** Data slot: high 32 bit of the target value. */
-    public static final int DATA_TARGET_HIGH = 5;
+    /** First data slot of the target value chunks (see {@link #VALUE_CHUNKS}). */
+    public static final int DATA_TARGET_START = DATA_INPUT_START + VALUE_CHUNKS;
 
     /** Data slot: last spin result. */
-    public static final int DATA_LAST_RESULT = 6;
+    public static final int DATA_LAST_RESULT = DATA_TARGET_START + VALUE_CHUNKS;
 
     /** Data slot: last pre-spin check code. */
-    public static final int DATA_LAST_CHECK = 7;
+    public static final int DATA_LAST_CHECK = DATA_LAST_RESULT + 1;
 
     /** No spin has been performed yet. */
     public static final int RESULT_NONE = 0;
@@ -357,12 +360,12 @@ public class UpgraderMenu extends AbstractContainerMenu {
 
     /** @return the value of the item in the input slot */
     public long getInputValue() {
-        return combine(this.data.get(DATA_INPUT_LOW), this.data.get(DATA_INPUT_HIGH));
+        return this.readValue(DATA_INPUT_START);
     }
 
     /** @return the value of the item in the target slot */
     public long getTargetValue() {
-        return combine(this.data.get(DATA_TARGET_LOW), this.data.get(DATA_TARGET_HIGH));
+        return this.readValue(DATA_TARGET_START);
     }
 
     /** @return {@link #RESULT_NONE}, {@link #RESULT_SUCCESS} or {@link #RESULT_FAILURE} */
@@ -410,11 +413,38 @@ public class UpgraderMenu extends AbstractContainerMenu {
 
         double chance = ChanceCalculator.chance(this.inputValue, this.targetValue, multiplier);
 
-        this.data.set(DATA_INPUT_LOW, low(this.inputValue));
-        this.data.set(DATA_INPUT_HIGH, high(this.inputValue));
-        this.data.set(DATA_TARGET_LOW, low(this.targetValue));
-        this.data.set(DATA_TARGET_HIGH, high(this.targetValue));
+        this.writeValue(DATA_INPUT_START, this.inputValue);
+        this.writeValue(DATA_TARGET_START, this.targetValue);
         this.data.set(DATA_CHANCE_X100, (int) Math.round(chance * 100.0D));
+    }
+
+    /**
+     * Splits a value into {@link #VALUE_CHUNKS} 16 bit chunks and stores them.
+     *
+     * @param startIndex first data slot of the value
+     * @param value      value to store
+     */
+    private void writeValue(int startIndex, long value) {
+        for (int chunk = 0; chunk < VALUE_CHUNKS; chunk++) {
+            this.data.set(startIndex + chunk, (int) ((value >>> (16 * chunk)) & 0xFFFFL));
+        }
+    }
+
+    /**
+     * Reassembles a value written by {@link #writeValue}.
+     *
+     * <p>The mask is required on both sides: the server keeps the unsigned chunk, while the client
+     * receives a sign extended {@code short} from the container data packet.</p>
+     *
+     * @param startIndex first data slot of the value
+     * @return the reassembled value
+     */
+    private long readValue(int startIndex) {
+        long value = 0L;
+        for (int chunk = 0; chunk < VALUE_CHUNKS; chunk++) {
+            value |= ((long) this.data.get(startIndex + chunk) & 0xFFFFL) << (16 * chunk);
+        }
+        return value;
     }
 
     private void onContainerChanged(Container container) {
@@ -425,15 +455,6 @@ public class UpgraderMenu extends AbstractContainerMenu {
         return ItemStack.isSameItemSameTags(left, right) && left.getCount() == right.getCount();
     }
 
-    private static int low(long value) {
-        return (int) (value & 0xFFFFFFFFL);
-    }
 
-    private static int high(long value) {
-        return (int) (value >>> 32);
-    }
 
-    private static long combine(int low, int high) {
-        return ((long) high << 32) | (low & 0xFFFFFFFFL);
-    }
 }

@@ -15,7 +15,7 @@ import org.slf4j.Logger;
  *
  * <p>Every provider call and the whole public entry point are wrapped in
  * {@code try-catch(Throwable)}: a broken provider (a modded item throwing from
- * {@code getMaxDamage}, a recipe graph blowing up, ...) degrades the value, it never crashes the
+ * {@code getMaxDamage}, or a recipe graph blowing up) degrades the value, it never crashes the
  * server.</p>
  */
 public final class ValueCalculator {

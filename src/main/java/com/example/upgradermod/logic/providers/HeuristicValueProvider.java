@@ -27,10 +27,10 @@ public class HeuristicValueProvider implements ValueProvider {
     /** Base value of every item. */
     public static final long BASE_VALUE = 1L;
 
-    /** Bonus for items stacking to 16 (ender pearls, snowballs, buckets of fish, ...). */
+    /** Bonus for items such as ender pearls, snowballs, and fish buckets that stack to 16. */
     public static final long STACK_16_BONUS = 4L;
 
-    /** Bonus for single, undamageable items (ingots, gems, food, ...). */
+    /** Bonus for single, undamageable items such as ingots, gems, and food. */
     public static final long SINGLE_UNBREAKABLE_BONUS = 49L;
 
     /** Divisor applied to the maximum damage of tools and armour. */
@@ -48,27 +48,31 @@ public class HeuristicValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
+        try {
+            if (stack == null || stack.isEmpty()) {
+                return UNKNOWN;
+            }
+
+            long value = BASE_VALUE;
+
+            int maxStackSize = stack.getMaxStackSize();
+            int maxDamage = stack.getMaxDamage();
+
+            if (maxStackSize == 16) {
+                value += STACK_16_BONUS;
+            }
+            if (maxStackSize == 1 && maxDamage == 0) {
+                value += SINGLE_UNBREAKABLE_BONUS;
+            }
+            if (maxDamage > 0) {
+                value += (long) (maxDamage / DAMAGE_DIVISOR);
+            }
+
+            value += rarityBonus(stack.getRarity());
+            return value;
+        } catch (Throwable throwable) {
             return UNKNOWN;
         }
-
-        long value = BASE_VALUE;
-
-        int maxStackSize = stack.getMaxStackSize();
-        int maxDamage = stack.getMaxDamage();
-
-        if (maxStackSize == 16) {
-            value += STACK_16_BONUS;
-        }
-        if (maxStackSize == 1 && maxDamage == 0) {
-            value += SINGLE_UNBREAKABLE_BONUS;
-        }
-        if (maxDamage > 0) {
-            value += (long) (maxDamage / DAMAGE_DIVISOR);
-        }
-
-        value += rarityBonus(stack.getRarity());
-        return value;
     }
 
     /**

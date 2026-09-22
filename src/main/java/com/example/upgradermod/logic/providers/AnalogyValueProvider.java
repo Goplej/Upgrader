@@ -48,30 +48,30 @@ public class AnalogyValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
-            return UNKNOWN;
-        }
-
-        ResourceLocation id = ItemRegistryCache.id(stack.getItem());
-        if (id == null || VANILLA_NAMESPACE.equals(id.getNamespace())) {
-            // Vanilla items have nothing to be compared against.
-            return UNKNOWN;
-        }
-
-        Item analogue = findVanillaAnalogue(id.getPath());
-        if (analogue == null || analogue == stack.getItem()) {
-            return UNKNOWN;
-        }
-        if (context.isVisited(analogue)) {
-            return UNKNOWN;
-        }
-
         try {
+            if (stack == null || stack.isEmpty()) {
+                return UNKNOWN;
+            }
+
+            ResourceLocation id = ItemRegistryCache.id(stack.getItem());
+            if (id == null || VANILLA_NAMESPACE.equals(id.getNamespace())) {
+                // Vanilla items have nothing to be compared against.
+                return UNKNOWN;
+            }
+
+            Item analogue = findVanillaAnalogue(id.getPath());
+            if (analogue == null || analogue == stack.getItem()) {
+                return UNKNOWN;
+            }
+            if (context.isVisited(analogue)) {
+                return UNKNOWN;
+            }
+
             ItemStack analogueStack = new ItemStack(analogue);
             ValueContext analogueContext = context.descend(analogue).disabling(getName());
             return ValueCalculator.calculate(analogueStack, analogueContext);
         } catch (Throwable throwable) {
-            LOGGER.debug("Upgrader analogy lookup failed for {}", id, throwable);
+            LOGGER.debug("Upgrader analogy lookup failed", throwable);
             return UNKNOWN;
         }
     }

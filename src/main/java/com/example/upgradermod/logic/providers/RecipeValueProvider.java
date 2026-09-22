@@ -53,7 +53,8 @@ public class RecipeValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
+        try {
+            if (stack == null || stack.isEmpty()) {
             return UNKNOWN;
         }
         if (context.getDepth() >= UpgraderConstants.MAX_RECIPE_DEPTH) {
@@ -128,7 +129,11 @@ public class RecipeValueProvider implements ValueProvider {
             }
         }
 
-        return best;
+            return best;
+        } catch (Throwable throwable) {
+            LOGGER.debug("Upgrader recipe provider failed", throwable);
+            return UNKNOWN;
+        }
     }
 
     /**

@@ -30,16 +30,20 @@ public class OverrideValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
+        try {
+            if (stack == null || stack.isEmpty()) {
+                return UNKNOWN;
+            }
+
+            ResourceLocation id = ItemRegistryCache.id(stack.getItem());
+            if (id == null) {
+                return UNKNOWN;
+            }
+
+            long configured = UpgraderConfig.getOverride(id);
+            return configured > 0L ? configured : UNKNOWN;
+        } catch (Throwable throwable) {
             return UNKNOWN;
         }
-
-        ResourceLocation id = ItemRegistryCache.id(stack.getItem());
-        if (id == null) {
-            return UNKNOWN;
-        }
-
-        long configured = UpgraderConfig.getOverride(id);
-        return configured > 0L ? configured : UNKNOWN;
     }
 }

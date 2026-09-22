@@ -93,6 +93,13 @@ public final class SpinValidator {
                 return Validation.cancel(4, "upgradermod.spin.cancel.creative");
             }
 
+            // C6 is audited before C5 so an input above the suspicious threshold is always written
+            // to disk, even when it also trips the value-ratio guard.
+            boolean suspicious = inputValue > UpgraderConstants.LOG_THRESHOLD;
+            if (suspicious) {
+                SuspiciousLogger.log(player, input, target, inputValue, targetValue);
+            }
+
             // C5 - the input must not be worth more than 100x the target. Compared in double to stay
             // overflow safe for the full value range.
             if ((double) inputValue > (double) targetValue * (double) MAX_VALUE_RATIO) {
@@ -100,8 +107,7 @@ public final class SpinValidator {
             }
 
             // C6 - absurd input values are audited and refused.
-            if (inputValue > UpgraderConstants.LOG_THRESHOLD) {
-                SuspiciousLogger.log(player, input, target, inputValue, targetValue);
+            if (suspicious) {
                 return Validation.cancel(6, "upgradermod.spin.cancel.suspicious");
             }
 

@@ -34,22 +34,22 @@ public class TagValueProvider implements ValueProvider {
 
     @Override
     public long getValue(ItemStack stack, ValueContext context) {
-        if (stack == null || stack.isEmpty()) {
-            return UNKNOWN;
-        }
-
-        long best = UNKNOWN;
         try {
+            if (stack == null || stack.isEmpty()) {
+                return UNKNOWN;
+            }
+
+            long best = UNKNOWN;
             for (TagKey<Item> tag : stack.getTags().toList()) {
                 long configured = UpgraderConfig.getTagValue(tag.location());
                 if (configured > 0L && configured > best) {
                     best = configured;
                 }
             }
+            return best;
         } catch (Throwable throwable) {
             LOGGER.debug("Upgrader could not resolve the tags of a stack", throwable);
+            return UNKNOWN;
         }
-
-        return best;
     }
 }
