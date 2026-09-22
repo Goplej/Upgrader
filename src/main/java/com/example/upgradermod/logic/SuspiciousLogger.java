@@ -1,5 +1,6 @@
 package com.example.upgradermod.logic;
 
+import com.example.upgradermod.UpgraderConstants;
 import com.example.upgradermod.config.UpgraderConfig;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
