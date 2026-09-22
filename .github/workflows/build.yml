@@ -6,7 +6,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
+  issues: write
 
 jobs:
   build:
@@ -37,11 +39,48 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build mod jar
-        run: ./gradlew --no-daemon --stacktrace build
+        id: build
+        continue-on-error: true
+        run: |
+          set +e
+          ./gradlew --no-daemon --stacktrace build 2>&1 | tee build.log
+          code=${PIPESTATUS[0]}
+          echo "exit=${code}" >> "$GITHUB_OUTPUT"
+          exit "${code}"
+
+      - name: Publish failure excerpt
+        if: steps.build.outputs.exit != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "### Upgrader build failed"
+            echo
+            echo '```'
+            grep -nE "error:|warning:|FAILURE:|What went wrong|Caused by:|Execution failed|> Task .*(FAILED)|Could not" build.log | tail -n 150
+            echo '```'
+            echo
+            echo "<details><summary>last 120 log lines</summary>"
+            echo
+            echo '```'
+            tail -n 120 build.log
+            echo '```'
+            echo
+            echo "</details>"
+          } > excerpt.md
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
+            -f body="$(cat excerpt.md)" || echo "could not publish the excerpt"
 
       - name: Upload mod jar
+        if: steps.build.outputs.exit == '0'
         uses: actions/upload-artifact@v4
         with:
           name: upgradermod-1.20.1
           path: build/libs/*.jar
           if-no-files-found: error
+
+      - name: Fail the job when the build failed
+        if: steps.build.outputs.exit != '0'
+        run: |
+          echo "Gradle build failed with exit code ${{ steps.build.outputs.exit }}"
+          exit 1
