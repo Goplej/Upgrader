@@ -71,8 +71,8 @@ jobs:
           gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
             -f body="$(cat excerpt.md)" || echo "could not publish the excerpt"
 
-      - name: Publish build report (manual runs only)
-        if: steps.build.outputs.exit == '0' && github.event_name == 'workflow_dispatch'
+      - name: Publish build report
+        if: steps.build.outputs.exit == '0' && (github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/arena/01a0c787-upgrader')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
