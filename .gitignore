@@ -6,3 +6,4 @@ run/
 .vscode/
 bin/
 eclipse/
+log-tail.txt

@@ -41,6 +41,17 @@ jobs:
           git commit -m "CI: build log tail [skip ci]"
           git push origin "HEAD:$GITHUB_REF_NAME"
 
+      - name: Refresh compiled jar deliverable
+        if: success() && github.ref == 'refs/heads/arena/01a0d26b-upgrader'
+        run: |
+          git config user.name "ci-log-bot"
+          git config user.email "ci-log-bot@users.noreply.github.com"
+          git checkout "$GITHUB_REF_NAME"
+          mkdir -p deliverables
+          find build/libs -maxdepth 1 -name 'upgrader-*.jar' ! -name '*-dev.jar' ! -name '*-sources.jar' -exec cp {} deliverables/ \;
+          git add deliverables
+          git diff --cached --quiet || (git commit -m "Refresh compiled mod jar [skip ci]" && git push origin "HEAD:$GITHUB_REF_NAME")
+
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
