@@ -1,6 +1,3 @@
-# This is the mod metadata file for the Upgrader mod.
-# Every dollar-brace placeholder below is expanded by the processResources task in build.gradle.
-
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
@@ -10,18 +7,39 @@ modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
-# ProjectE is an optional soft dependency and is reached through reflection only.
-# It is intentionally NOT declared here so that the mod loads fine without it.
 description='''${mod_description}'''
 
-[[dependencies.${mod_id}]]
+# All third-party integrations are OPTIONAL and loaded reflectively at runtime.
+# They are declared here purely for load-ordering hints (mandatory=false).
+[[dependencies.upgrader]]
+    modId="projecte"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.upgrader]]
+    modId="avaritia"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.upgrader]]
+    modId="resourcealchemist"
+    mandatory=false
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.upgrader]]
     modId="forge"
     mandatory=true
     versionRange="${forge_version_range}"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.${mod_id}]]
+[[dependencies.upgrader]]
     modId="minecraft"
     mandatory=true
     versionRange="${minecraft_version_range}"

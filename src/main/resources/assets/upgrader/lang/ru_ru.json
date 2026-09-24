@@ -1,0 +1,15 @@
+{
+  "itemGroup.upgrader": "Upgrader",
+  "item.upgrader.upgrade_core": "Ядро улучшения",
+  "item.upgrader.value_anchor": "Эталон ценности",
+  "gui.upgrader.value_bar": "Состав ценности",
+  "gui.upgrader.title": "Ценность предмета и улучшение",
+  "gui.upgrader.next_cost": "Стоимость следующего уровня: %s",
+  "gui.upgrader.current_level": "Уровень %d",
+  "command.upgrader.reloaded": "Время выполнения Upgrader перезагружено.",
+  "upgrader.msg.upgraded": "Улучшение применено!",
+  "upgrader.msg.empty_hand": "Держите улучшаемый предмет в основной руке.",
+  "upgrader.msg.max_level": "Предмет достиг максимального уровня улучшения.",
+  "upgrader.msg.unknown_value": "Движок пока не может оценить этот предмет (нет достоверных данных).",
+  "upgrader.msg.insufficient_value": "В инвентаре недостаточно суммарной ценности для оплаты улучшения."
+}
