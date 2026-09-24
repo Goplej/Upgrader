@@ -1,0 +1,10 @@
+{
+  "item.upgrader.upgrader": "Покращувач",
+  "item.upgrader.upgrader.tooltip": "ПКМ — відкрити меню покращення",
+  "item.upgrader.upgrader.tooltip2": "Покращує інструменти та броню, зберігаючи чари",
+  "upgrader.screen.item_slot": "Предмет",
+  "upgrader.screen.hint_empty": "Покладіть предмет у слот ліворуч",
+  "upgrader.screen.hint_no_upgrades": "Цей предмет більше не можна покращити",
+  "upgrader.screen.cost": "Вартість:",
+  "upgrader.screen.keep_hint": "Чари та назву буде збережено"
+}

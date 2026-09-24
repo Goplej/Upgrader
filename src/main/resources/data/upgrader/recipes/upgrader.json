@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "D",
+    "B",
+    "I"
+  ],
+  "key": {
+    "D": { "item": "minecraft:diamond" },
+    "B": { "item": "minecraft:book" },
+    "I": { "item": "minecraft:iron_ingot" }
+  },
+  "result": {
+    "item": "upgrader:upgrader",
+    "count": 1
+  }
+}

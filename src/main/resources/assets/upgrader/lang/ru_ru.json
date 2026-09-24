@@ -1,0 +1,10 @@
+{
+  "item.upgrader.upgrader": "Улучшатель",
+  "item.upgrader.upgrader.tooltip": "ПКМ — открыть меню улучшения",
+  "item.upgrader.upgrader.tooltip2": "Улучшает инструменты и броню, сохраняя чары",
+  "upgrader.screen.item_slot": "Предмет",
+  "upgrader.screen.hint_empty": "Положите предмет в слот слева",
+  "upgrader.screen.hint_no_upgrades": "Этот предмет больше нельзя улучшить",
+  "upgrader.screen.cost": "Стоимость:",
+  "upgrader.screen.keep_hint": "Чары и название сохранятся"
+}

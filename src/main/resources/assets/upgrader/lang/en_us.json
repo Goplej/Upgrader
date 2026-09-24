@@ -1,0 +1,10 @@
+{
+  "item.upgrader.upgrader": "Upgrader",
+  "item.upgrader.upgrader.tooltip": "Right-click to open the upgrade menu",
+  "item.upgrader.upgrader.tooltip2": "Upgrades tools and armor, keeps enchantments",
+  "upgrader.screen.item_slot": "Item",
+  "upgrader.screen.hint_empty": "Put an upgradable item into the slot",
+  "upgrader.screen.hint_no_upgrades": "This item cannot be upgraded further",
+  "upgrader.screen.cost": "Cost:",
+  "upgrader.screen.keep_hint": "Enchantments and custom name are kept"
+}

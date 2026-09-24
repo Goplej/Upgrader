@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "upgrader",
+  "version": "${version}",
+  "name": "Upgrader",
+  "description": "Right-click the Upgrader item to open an upgrade menu: put in your tool or armor, pick the item you want, pay the materials. Enchantments and the custom name are kept.",
+  "authors": [
+    "Goplej"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Goplej/Upgrader",
+    "sources": "https://github.com/Goplej/Upgrader"
+  },
+  "license": "MIT",
+  "icon": "assets/upgrader/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.goplej.upgrader.UpgraderMod"
+    ],
+    "client": [
+      "com.goplej.upgrader.client.UpgraderClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": "~1.20.1",
+    "java": ">=17"
+  }
+}
