@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,7 +26,20 @@ jobs:
           gradle-version: '8.8'
 
       - name: Build
-        run: gradle build --stacktrace
+        run: |
+          set -o pipefail
+          gradle build --stacktrace --no-daemon 2>&1 | tee build.log
+
+      - name: Commit build log on failure
+        if: failure()
+        run: |
+          git config user.name "ci-log-bot"
+          git config user.email "ci-log-bot@users.noreply.github.com"
+          git checkout "$GITHUB_REF_NAME"
+          tail -c 300000 build.log > log-tail.txt || true
+          git add --force log-tail.txt
+          git commit -m "CI: build log tail [skip ci]"
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
