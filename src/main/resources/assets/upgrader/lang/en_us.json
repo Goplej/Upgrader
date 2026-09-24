@@ -1,0 +1,15 @@
+{
+  "itemGroup.upgrader": "Upgrader",
+  "item.upgrader.upgrade_core": "Upgrade Core",
+  "item.upgrader.value_anchor": "Value Anchor",
+  "gui.upgrader.value_bar": "Value composition",
+  "gui.upgrader.title": "Item Value & Upgrade",
+  "gui.upgrader.next_cost": "Next level cost: %s",
+  "gui.upgrader.current_level": "Level %d",
+  "command.upgrader.reloaded": "Upgrader runtime reloaded.",
+  "upgrader.msg.upgraded": "Upgrade applied!",
+  "upgrader.msg.empty_hand": "Hold the item to upgrade in your main hand.",
+  "upgrader.msg.max_level": "This item reached its maximum upgrade level.",
+  "upgrader.msg.unknown_value": "The engine cannot price this item yet (no trustworthy evidence).",
+  "upgrader.msg.insufficient_value": "Not enough total value in your inventory to pay for this upgrade."
+}
