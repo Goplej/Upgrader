@@ -34,7 +34,15 @@ Fabric-мод для **Minecraft 1.20.1**: предмет «Улучшатель
 gradle build
 ```
 
-Готовый jar появится в `build/libs/`. Также jar собирается автоматически через GitHub Actions — смотри вкладку *Actions* репозитория.
+Готовый jar появится в `build/libs/`. Также jar собирается автоматически через GitHub Actions — смотри вкладку *Actions* репозитория, а последняя собранная версия всегда лежит в `deliverables/upgrader-1.0.0.jar` этой ветки.
+
+## Установка
+
+1. Поставь [Fabric Loader](https://fabricmc.net/use/) для Minecraft **1.20.1**.
+2. Положи в папку `mods`:
+   - [Fabric API](https://modrinth.com/mod/fabric-api) для 1.20.1;
+   - `upgrader-1.0.0.jar` из `deliverables/`.
+
 
 ## Структура кода
 
