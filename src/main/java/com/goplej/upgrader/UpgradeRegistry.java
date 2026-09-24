@@ -86,7 +86,7 @@ public final class UpgradeRegistry {
                 costs.merge(line.stepMaterials().get(step), line.count(), Integer::sum);
             }
             List<UpgradeOption.Cost> list = new ArrayList<>();
-            costs.forEach((item, amount) -> list.add(new UpgradeOption.Cost(item, amount)));
+            costs.forEach((mat, amount) -> list.add(new UpgradeOption.Cost(mat, amount)));
             options.add(new UpgradeOption(line.items().get(to), List.copyOf(list)));
         }
         return options;

@@ -188,7 +188,7 @@ public class UpgraderScreen extends HandledScreen<UpgraderScreenHandler> {
     }
 
     private Text trim(Text text, int width) {
-        return this.textRenderer.trimToWidth(text, width);
+        return Text.literal(this.textRenderer.trimToWidth(text.getString(), width));
     }
 
     private static void drawSlotSquare(DrawContext context, int x, int y) {

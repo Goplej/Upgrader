@@ -30,7 +30,7 @@ public class UpgraderMod implements ModInitializer {
 
     private static ScreenHandlerType<UpgraderScreenHandler> registerScreenHandler() {
         ScreenHandlerType<UpgraderScreenHandler> type =
-                new ScreenHandlerType<>((syncId, inventory, buf) -> new UpgraderScreenHandler(syncId, inventory));
+                new ScreenHandlerType<UpgraderScreenHandler>((syncId, inventory, buf) -> new UpgraderScreenHandler(syncId, inventory));
         return Registry.register(Registries.SCREEN_HANDLER, id("upgrader"), type);
     }
 
